@@ -1,9 +1,9 @@
 DB_CONFIG = {
     'server': 'localhost',
     'port': '1433',
-    'user': 'sa',
-    'password': 'puasa123',
-    'database': 'test2',
+    'user': 'sa', #Sesuaikan dengan user SQL Server
+    'password': '123', # Sesuaikan dengan password SQL Server
+    'database': 'programming-in-db', # Sesuaikan dengan nama database yang akan di backup
     'driver': 'ODBC Driver 18 for SQL Server'
 }
 
