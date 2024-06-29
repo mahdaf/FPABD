@@ -88,3 +88,50 @@ def auto_diff_backup(interval):
         error_message = f"Unexpected error occurred: {str(e)}"
         logging.error(error_message)
         print(error_message)
+
+def main(full_backup_interval, diff_backup_interval, translog_backup_interval):
+    try:
+        last_full_backup_time = get_last_backup_time()
+        last_diff_backup_time = last_full_backup_time
+        
+        while True:
+            current_time = int(time.time())
+            
+            # Full Backup
+            if current_time - last_full_backup_time >= full_backup_interval:
+                backup_full()
+                last_full_backup_time = current_time
+                last_diff_backup_time = current_time
+            
+            # Differential Backup
+            elif current_time - last_diff_backup_time >= diff_backup_interval:
+                backup_diff()
+                last_diff_backup_time = current_time
+            
+            # Transaction Log Backup
+            else:
+                backup_translog()
+            
+            time.sleep(translog_backup_interval)
+    except KeyboardInterrupt:
+        print("\nBackup process interrupted. Exiting...")
+        sys.exit(0)
+    except Exception as e:
+        error_message = f"Unexpected error occurred: {str(e)}"
+        write_error_report(error_message, ERROR_REPORT_FILE)
+        print(error_message)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Automated Database Backup')
+    parser.add_argument('full_backup_interval', type=int, nargs='?', help='Interval in seconds for full backups')
+    parser.add_argument('diff_backup_interval', type=int, nargs='?', help='Interval in seconds for differential backups')
+    parser.add_argument('translog_backup_interval', type=int, nargs='?', help='Interval in seconds for transaction log backups')
+    parser.add_argument('--diff', type=int, help='Run differential backup only with specified interval')
+    args = parser.parse_args()
+
+    if args.diff:
+        auto_diff_backup(args.diff)
+    else:
+        if args.full_backup_interval is None or args.diff_backup_interval is None or args.translog_backup_interval is None:
+            parser.error("the following arguments are required: full_backup_interval, diff_backup_interval, translog_backup_interval")
+        main(args.full_backup_interval, args.diff_backup_interval, args.translog_backup_interval)
