@@ -1,9 +1,9 @@
 DB_CONFIG = {
     'server': 'localhost',
     'port': '1433',
-    'user': 'sa',
-    'password': 'puasa123',
-    'database': 'test2',
+    'user': 'sa', ##ganti username
+    'password': 'puasa123', ## ganti password
+    'database': 'test2', ## ganti database
     'driver': 'ODBC Driver 18 for SQL Server'
 }
 
