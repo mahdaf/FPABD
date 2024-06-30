@@ -82,7 +82,7 @@ To perform log shipping from the primary to the secondary server, run:
   ```sh
   python log_shipping.py namedbprimary namedbsecondary
   ```
-Nnote: namedbprimary must match the database set in config.py 
+Note: namedbprimary must match the database set in config.py 
 
 ## Modules
 ### auto_backup.py
