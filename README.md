@@ -16,8 +16,6 @@ A Python-based utility for automating the backup and restore processes of a SQL 
   - [config.py](#configpy)
 - [Logging](#logging)
 - [Error Handling](#error-handling)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Installation
 
