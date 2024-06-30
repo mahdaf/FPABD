@@ -53,9 +53,9 @@ LOG_FILE = 'logs/backup_restore.log'
 ## Usage
 ### Full Backup
 To perform a full backup, run:
-    ```sh
-    python backup.py full
-    ```
+  ```sh
+  python backup.py full
+  ```
 ### Differential Backup
 To perform a differential backup, run:
   ```sh
