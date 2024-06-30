@@ -30,7 +30,7 @@ Install the ODBC Driver for SQL Server. You can download it from the Microsoft O
 ### Step 4: Clone the Repository
 Clone this repository to your local machine using the following command:
   ``` sh
-  git clone https://github.com/your-repo/database-backup-restore.git
+  git clone https://github.com/mahdaf/FPABD.git
   ```
 
 ## Configuration
