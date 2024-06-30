@@ -18,7 +18,11 @@ DB_CONFIG_SECONDARY = {
     'host': 'localhost',  # Sesuaikan dengan host secondary server Anda
     'user': DB_CONFIG['user'],
     'password': DB_CONFIG['password'],
+<<<<<<< HEAD
     'database': 'test50'  # Sesuaikan dengan nama database secondary
+=======
+    'database': 'test2'  # Sesuaikan dengan nama database secondary
+>>>>>>> 75df43ebf77df6d6a89f6ad58b07932703a02018
 }
 
 # Direktori untuk menyimpan file backup
@@ -95,14 +99,23 @@ def full_backup_primary():
 
 def restore_full_on_secondary(backup_file):
     # Tentukan lokasi baru untuk file database di server sekunder
+<<<<<<< HEAD
     mdf_path = os.path.join(SECONDARY_BACKUP_DIR, 'test50.mdf')
     ldf_path = os.path.join(SECONDARY_BACKUP_DIR, 'test50_log.ldf')
+=======
+    mdf_path = os.path.join(SECONDARY_BACKUP_DIR, 'test2.mdf')
+    ldf_path = os.path.join(SECONDARY_BACKUP_DIR, 'test2_log.ldf')
+>>>>>>> 75df43ebf77df6d6a89f6ad58b07932703a02018
     
     restore_command = (
         f"sqlcmd -S {DB_CONFIG_SECONDARY['host']} -U {DB_CONFIG_SECONDARY['user']} "
         f"-P {DB_CONFIG_SECONDARY['password']} "
         f"-Q \"RESTORE DATABASE [{DB_CONFIG_SECONDARY['database']}] FROM DISK = '{backup_file}' "
+<<<<<<< HEAD
         f"WITH MOVE 'test1' TO '{mdf_path}', MOVE 'test1_log' TO '{ldf_path}', NORECOVERY\""
+=======
+        f"WITH MOVE 'programming-in-db' TO '{mdf_path}', MOVE 'programming-in-db_log' TO '{ldf_path}', NORECOVERY\""
+>>>>>>> 75df43ebf77df6d6a89f6ad58b07932703a02018
     )
     print(f"Running restore command: {restore_command}")
     if run_sqlcmd(restore_command):
@@ -141,4 +154,8 @@ def main():
     recovery_secondary()
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     main()
+=======
+    main()
+>>>>>>> 75df43ebf77df6d6a89f6ad58b07932703a02018
