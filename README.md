@@ -51,6 +51,7 @@ BACKUP_DIR = 'backup'
 LOG_FILE = 'logs/backup_restore.log'
 ```
 
+
 ## Usage
 ### Full Backup
 To perform a full backup, run:
@@ -71,6 +72,7 @@ python restore.py /path/to/backup/file.bak
 To perform log shipping from the primary to the secondary server, run:
 python log_shipping.py
 
+
 ## Modules
 ### auto_backup.py
 Automates the full, differential, and transaction log backup processes based on specified intervals.
@@ -85,8 +87,10 @@ Contains utility functions for logging setup and error reporting.
 ### config.py
 Contains the configuration settings for database connection and file paths.
 
+
 ## Logging
 Log files are stored in the logs directory. The main log file is backup_restore.log. Error reports are stored in error_report.txt.
+
 
 ## Error Handling
 Errors encountered during backup or restore processes are logged and appended to error_report.txt.
