@@ -41,11 +41,10 @@ DB_CONFIG = {
     'database': 'programming-in-db',
     'driver': 'ODBC Driver 18 for SQL Server'
 }
-
 BACKUP_DIR = 'backup'
 LOG_FILE = 'logs/backup_restore.log'
 
-Usage
+**## Usage**
 Full Backup
 To perform a full backup, run:
 python backup.py full
@@ -66,20 +65,23 @@ python restore.py /path/to/backup/file.bak
 Log Shipping
 To perform log shipping from the primary to the secondary server, run:
 python log_shipping.py
-Modules
-auto_backup.py
+
+**## Modules**
+### auto_backup.py
 Automates the full, differential, and transaction log backup processes based on specified intervals.
-backup.py
+### backup.py
 Provides command-line interface (CLI) for performing full, differential, and transaction log backups.
-restore.py
+### restore.py
 Provides CLI for restoring a database from a backup file.
-log_shipping.py
+### log_shipping.py
 Automates the log shipping process to a secondary server for disaster recovery purposes.
-utils.py
+### utils.py
 Contains utility functions for logging setup and error reporting.
-config.py
+### config.py
 Contains the configuration settings for database connection and file paths.
-Logging
+
+## Logging
 Log files are stored in the logs directory. The main log file is backup_restore.log. Error reports are stored in error_report.txt.
-Error Handling
+
+## Error Handling
 Errors encountered during backup or restore processes are logged and appended to error_report.txt.
