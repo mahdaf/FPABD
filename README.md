@@ -55,22 +55,22 @@ LOG_FILE = 'logs/backup_restore.log'
 ## Usage
 ### Full Backup
 To perform a full backup, run:
-python backup.py full
+```python backup.py full```
 ### Differential Backup
 To perform a differential backup, run:
-python backup.py diff
+```python backup.py diff```
 ### Transaction Log Backup
 To perform a transaction log backup, run:
-python backup.py translog
+```python backup.py translog```
 ### Automated Backups
 To set up automated backups, specify the intervals in seconds for each type of backup:
-python auto_backup.py FULL_BACKUP_INTERVAL DIFF_BACKUP_INTERVAL TRANSLOG_BACKUP_INTERVAL
+```python auto_backup.py FULL_BACKUP_INTERVAL DIFF_BACKUP_INTERVAL TRANSLOG_BACKUP_INTERVAL```
 ### Restore
 To restore a database from a backup file, run:
-python restore.py /path/to/backup/file.bak
+```python restore.py /path/to/backup/file.bak```
 ### Log Shipping
 To perform log shipping from the primary to the secondary server, run:
-python log_shipping.py
+```python log_shipping.py```
 
 
 ## Modules
