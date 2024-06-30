@@ -28,7 +28,7 @@ Install the necessary Python modules using pip. Run the following command:
 ### Step 3: Install ODBC Driver
 Install the ODBC Driver for SQL Server. You can download it from the Microsoft ODBC Driver for SQL Server.
 ### Step 4: Clone the Repository
-Clone this repository to your local machine using the following command:
+Clone this repository to your local machine (place it on disk **C://FPABD**) using the following command:
   ``` sh
   git clone https://github.com/mahdaf/FPABD.git
   ```
