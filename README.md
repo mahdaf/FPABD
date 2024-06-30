@@ -18,19 +18,20 @@ A Python-based utility for automating the backup and restore processes of a SQL 
 - [Error Handling](#error-handling)
 
 ## Installation
-
-1. Clone the repository:
-    ```sh
-    git clone https://github.com/yourusername/db-backup-restore.git
-    cd db-backup-restore
-    ```
-
-2. Create a virtual environment and install dependencies:
-    ```sh
-    python -m venv venv
-    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-    pip install -r requirements.txt
-    ```
+### Step 1: Install Python
+Ensure that Python is installed on your system. You can download and install Python from the official Python website.
+### Step 2: Install Required Python Modules
+Install the necessary Python modules using pip. Run the following command:
+  ``` sh
+  pip install pyodbc
+  ```
+### Step 3: Install ODBC Driver
+Install the ODBC Driver for SQL Server. You can download it from the Microsoft ODBC Driver for SQL Server.
+### Step 4: Clone the Repository
+Clone this repository to your local machine using the following command:
+  ``` sh
+  git clone https://github.com/your-repo/database-backup-restore.git
+  ```
 
 ## Configuration
 
