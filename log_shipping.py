@@ -1,36 +1,22 @@
+import logging
 import subprocess
 import os
+import sys
 from datetime import datetime
-from config import BACKUP_DIR, DB_CONFIG
+from config import BACKUP_DIR, DB_CONFIG, LOG_FILE
+from utils import setup_logging, write_error_report
 
-# Konfigurasi database sumber (primary)
-DB_CONFIG_PRIMARY = {
-    'driver': DB_CONFIG['driver'],
-    'host': DB_CONFIG['server'],
-    'user': DB_CONFIG['user'],
-    'password': DB_CONFIG['password'],
-    'database': DB_CONFIG['database']
-}
+ERROR_REPORT_FILE = 'logs/error_report.txt'
 
-# Konfigurasi database tujuan (secondary)
-DB_CONFIG_SECONDARY = {
-    'driver': DB_CONFIG['driver'],
-    'host': 'localhost',  # Sesuaikan dengan host secondary server Anda
-    'user': DB_CONFIG['user'],
-    'password': DB_CONFIG['password'],
-    'database': 'test50'  # Sesuaikan dengan nama database secondary
-}
-
-# Direktori untuk menyimpan file backup
 BACKUP_DIR = os.path.abspath(BACKUP_DIR)
 SECONDARY_BACKUP_DIR = os.path.join(BACKUP_DIR, 'secondary')
 
-# Membuat direktori secondary jika belum ada
 if not os.path.exists(SECONDARY_BACKUP_DIR):
     os.makedirs(SECONDARY_BACKUP_DIR)
 
 def run_sqlcmd(command):
     try:
+        setup_logging(LOG_FILE)
         result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
         print(result.stdout)
         return True
@@ -38,15 +24,17 @@ def run_sqlcmd(command):
         print(f"Command failed: {e}")
         print(e.stdout)
         print(e.stderr)
+        logging.error(str(e))
+        write_error_report(str(e), ERROR_REPORT_FILE)
         return False
 
-def backup_transaction_log():
+def backup_transaction_log(db_config_primary, secondary_backup_dir):
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    backup_file = os.path.join(SECONDARY_BACKUP_DIR, f'translog_{timestamp}.bak')
+    backup_file = os.path.join(secondary_backup_dir, f'translog_{timestamp}.bak')
     dump_command = (
-        f"sqlcmd -S {DB_CONFIG_PRIMARY['host']} -U {DB_CONFIG_PRIMARY['user']} "
-        f"-P {DB_CONFIG_PRIMARY['password']} -d {DB_CONFIG_PRIMARY['database']} "
-        f"-Q \"BACKUP LOG [{DB_CONFIG_PRIMARY['database']}] TO DISK = '{backup_file}' WITH INIT\""
+        f"sqlcmd -S {db_config_primary['host']} -U {db_config_primary['user']} "
+        f"-P {db_config_primary['password']} -d {db_config_primary['database']} "
+        f"-Q \"BACKUP LOG [{db_config_primary['database']}] TO DISK = '{backup_file}' WITH INIT\""
     )
     if run_sqlcmd(dump_command):
         print(f"Transaction log backup successful: {backup_file}")
@@ -55,11 +43,11 @@ def backup_transaction_log():
         print(f"Transaction log backup failed.")
         return None
 
-def restore_log_on_secondary(log_file):
+def restore_log_on_secondary(db_config_secondary, log_file):
     restore_command = (
-        f"sqlcmd -S {DB_CONFIG_SECONDARY['host']} -U {DB_CONFIG_SECONDARY['user']} "
-        f"-P {DB_CONFIG_SECONDARY['password']} "
-        f"-Q \"RESTORE LOG [{DB_CONFIG_SECONDARY['database']}] FROM DISK = '{log_file}' WITH NORECOVERY\""
+        f"sqlcmd -S {db_config_secondary['host']} -U {db_config_secondary['user']} "
+        f"-P {db_config_secondary['password']} "
+        f"-Q \"RESTORE LOG [{db_config_secondary['database']}] FROM DISK = '{log_file}' WITH NORECOVERY\""
     )
     print(f"Running restore command: {restore_command}")
     if run_sqlcmd(restore_command):
@@ -67,11 +55,11 @@ def restore_log_on_secondary(log_file):
     else:
         print(f"Failed to restore log file.")
 
-def recovery_secondary():
+def recovery_secondary(db_config_secondary):
     recovery_command = (
-        f"sqlcmd -S {DB_CONFIG_SECONDARY['host']} -U {DB_CONFIG_SECONDARY['user']} "
-        f"-P {DB_CONFIG_SECONDARY['password']} "
-        f"-Q \"RESTORE DATABASE [{DB_CONFIG_SECONDARY['database']}] WITH RECOVERY\""
+        f"sqlcmd -S {db_config_secondary['host']} -U {db_config_secondary['user']} "
+        f"-P {db_config_secondary['password']} "
+        f"-Q \"RESTORE DATABASE [{db_config_secondary['database']}] WITH RECOVERY\""
     )
     print(f"Running recovery command: {recovery_command}")
     if run_sqlcmd(recovery_command):
@@ -79,12 +67,12 @@ def recovery_secondary():
     else:
         print(f"Failed to recover database.")
 
-def full_backup_primary():
-    backup_file = os.path.join(SECONDARY_BACKUP_DIR, 'full_backup.bak')
+def full_backup_primary(db_config_primary, secondary_backup_dir):
+    backup_file = os.path.join(secondary_backup_dir, 'full_backup.bak')
     dump_command = (
-        f"sqlcmd -S {DB_CONFIG_PRIMARY['host']} -U {DB_CONFIG_PRIMARY['user']} "
-        f"-P {DB_CONFIG_PRIMARY['password']} "
-        f"-Q \"BACKUP DATABASE [{DB_CONFIG_PRIMARY['database']}] TO DISK = '{backup_file}' WITH INIT\""
+        f"sqlcmd -S {db_config_primary['host']} -U {db_config_primary['user']} "
+        f"-P {db_config_primary['password']} "
+        f"-Q \"BACKUP DATABASE [{db_config_primary['database']}] TO DISK = '{backup_file}' WITH INIT\""
     )
     if run_sqlcmd(dump_command):
         print(f"Full backup successful: {backup_file}")
@@ -93,15 +81,14 @@ def full_backup_primary():
         print(f"Full backup failed.")
         return None
 
-def restore_full_on_secondary(backup_file):
-    # Tentukan lokasi baru untuk file database di server sekunder
-    mdf_path = os.path.join(SECONDARY_BACKUP_DIR, 'test50.mdf')
-    ldf_path = os.path.join(SECONDARY_BACKUP_DIR, 'test50_log.ldf')
+def restore_full_on_secondary(db_config_secondary, backup_file, secondary_backup_dir):
+    mdf_path = os.path.join(secondary_backup_dir, f"{db_config_secondary['database']}.mdf")
+    ldf_path = os.path.join(secondary_backup_dir, f"{db_config_secondary['database']}_log.ldf")
     
     restore_command = (
-        f"sqlcmd -S {DB_CONFIG_SECONDARY['host']} -U {DB_CONFIG_SECONDARY['user']} "
-        f"-P {DB_CONFIG_SECONDARY['password']} "
-        f"-Q \"RESTORE DATABASE [{DB_CONFIG_SECONDARY['database']}] FROM DISK = '{backup_file}' "
+        f"sqlcmd -S {db_config_secondary['host']} -U {db_config_secondary['user']} "
+        f"-P {db_config_secondary['password']} "
+        f"-Q \"RESTORE DATABASE [{db_config_secondary['database']}] FROM DISK = '{backup_file}' "
         f"WITH MOVE 'test1' TO '{mdf_path}', MOVE 'test1_log' TO '{ldf_path}', NORECOVERY\""
     )
     print(f"Running restore command: {restore_command}")
@@ -110,12 +97,12 @@ def restore_full_on_secondary(backup_file):
     else:
         print(f"Failed to restore full backup.")
 
-def drop_database_secondary():
+def drop_database_secondary(db_config_secondary):
     drop_db_command = (
-        f"sqlcmd -S {DB_CONFIG_SECONDARY['host']} -U {DB_CONFIG_SECONDARY['user']} "
-        f"-P {DB_CONFIG_SECONDARY['password']} "
-        f"-Q \"IF EXISTS (SELECT name FROM sys.databases WHERE name = '{DB_CONFIG_SECONDARY['database']}') "
-        f"DROP DATABASE [{DB_CONFIG_SECONDARY['database']}]\""
+        f"sqlcmd -S {db_config_secondary['host']} -U {db_config_secondary['user']} "
+        f"-P {db_config_secondary['password']} "
+        f"-Q \"IF EXISTS (SELECT name FROM sys.databases WHERE name = '{db_config_secondary['database']}') "
+        f"DROP DATABASE [{db_config_secondary['database']}]\""
     )
     print(f"Running drop database command: {drop_db_command}")
     if run_sqlcmd(drop_db_command):
@@ -123,23 +110,41 @@ def drop_database_secondary():
     else:
         print(f"Failed to drop database on secondary server.")
 
-def main():
-    # Pastikan database sekunder tidak ada sebelum melakukan restore
-    drop_database_secondary()
+def main(db_name_primary, db_name_secondary):
+    db_config_primary = {
+        'driver': DB_CONFIG['driver'],
+        'host': DB_CONFIG['server'],
+        'user': DB_CONFIG['user'],
+        'password': DB_CONFIG['password'],
+        'database': db_name_primary
+    }
+
+    db_config_secondary = {
+        'driver': DB_CONFIG['driver'],
+        'host': 'localhost',  # Sesuaikan dengan host secondary server
+        'user': DB_CONFIG['user'],
+        'password': DB_CONFIG['password'],
+        'database': db_name_secondary  # Sesuaikan dengan nama database secondary
+    }
     
-    # Step 1: Full backup and restore
-    full_backup_file = full_backup_primary()
+
+    drop_database_secondary(db_config_secondary)
+    
+    full_backup_file = full_backup_primary(db_config_primary, SECONDARY_BACKUP_DIR)
     if full_backup_file:
-        restore_full_on_secondary(full_backup_file)
+        restore_full_on_secondary(db_config_secondary, full_backup_file, SECONDARY_BACKUP_DIR)
     
-    # Step 2: Log shipping
-    log_file = backup_transaction_log()
+    log_file = backup_transaction_log(db_config_primary, SECONDARY_BACKUP_DIR)
     if log_file:
-        restore_log_on_secondary(log_file)
+        restore_log_on_secondary(db_config_secondary, log_file)
     
-    # Step 3: Recover the secondary database to make it available
-    recovery_secondary()
+    recovery_secondary(db_config_secondary)
 
 if __name__ == "__main__":
-    main()
-
+    if len(sys.argv) != 3:
+        print("Usage: python log_shipping.py <primary_db_name> <secondary_db_name>")
+        sys.exit(1)
+    
+    db_name_primary = sys.argv[1]
+    db_name_secondary = sys.argv[2]
+    main(db_name_primary, db_name_secondary)

@@ -9,16 +9,7 @@ ERROR_REPORT_FILE = 'logs/error_report.txt'
 def restore(filename):
     try:
         setup_logging(LOG_FILE)
-        
-        # # Tambahkan pernyataan untuk mengubah database ke dalam keadaan offline
-        # offline_command = f"sqlcmd -S {DB_CONFIG['server']} -U {DB_CONFIG['user']} -P {DB_CONFIG['password']} -Q \"ALTER DATABASE [{DB_CONFIG['database']}] SET OFFLINE WITH ROLLBACK IMMEDIATE\""
-        # run_shell_command(offline_command)
-
-        # # Tambahkan pernyataan untuk mengubah database ke dalam keadaan online
-        # online_command = f"sqlcmd -S {DB_CONFIG['server']} -U {DB_CONFIG['user']} -P {DB_CONFIG['password']} -Q \"ALTER DATABASE [{DB_CONFIG['database']}] SET ONLINE\""
-        # run_shell_command(online_command)
-
-        # Lakukan restore setelah database dalam keadaan offline
+    
         command = f"sqlcmd -S {DB_CONFIG['server']} -U {DB_CONFIG['user']} -P {DB_CONFIG['password']} -Q \"RESTORE DATABASE [{DB_CONFIG['database']}] FROM DISK='{filename}' WITH REPLACE, NORECOVERY\""
         result = run_shell_command(command)
         if result and "Msg" in result:

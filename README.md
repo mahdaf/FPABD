@@ -75,14 +75,14 @@ To set up automated backups, specify the intervals in seconds for each type of b
 ### Restore
 To restore a database from a backup file, run:
   ```sh
-  python restore.py /path/to/backup/file.bak
+  python restore.py backup/file.bak
   ```
 ### Log Shipping
 To perform log shipping from the primary to the secondary server, run:
   ```sh
-  python log_shipping.py
+  python log_shipping.py namedbprimary namedbsecondary
   ```
-
+Nnote: namedbprimary must match the database set in config.py 
 
 ## Modules
 ### auto_backup.py

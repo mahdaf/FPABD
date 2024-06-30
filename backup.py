@@ -3,7 +3,6 @@ import os
 import logging
 import pyodbc
 import time
-
 from config import DB_CONFIG, BACKUP_DIR, LOG_FILE
 from utils import setup_logging, write_error_report
 
@@ -13,17 +12,13 @@ LAST_FULL_BACKUP_TIME_FILE = 'logs/last_full_backup_time.txt'
 
 BACKUP_DIR = os.path.abspath(BACKUP_DIR)
 
-def backup_full(table_name=None):
+def backup_full():
     try:
         setup_logging(LOG_FILE)
         db_name = DB_CONFIG['database']
-        timestamp = time.strftime('%Y%m%d%H%M%S')
-        if table_name:
-            filename = os.path.join(BACKUP_DIR, f"{db_name}_{table_name}_full_{timestamp}.bak")
-            command = f"sqlcmd -S {DB_CONFIG['server']} -U {DB_CONFIG['user']} -P {DB_CONFIG['password']} -Q \"BACKUP DATABASE [{db_name}] TO DISK='{filename}'\""
-        else:
-            filename = os.path.join(BACKUP_DIR, f"{db_name}_full_backup_{timestamp}.bak")
-            command = f"sqlcmd -S {DB_CONFIG['server']} -U {DB_CONFIG['user']} -P {DB_CONFIG['password']} -Q \"BACKUP DATABASE [{db_name}] TO DISK='{filename}'\""
+        timestamp = time.strftime('%d%m%Y%H%M%S')
+        filename = os.path.join(BACKUP_DIR, f"{db_name}_full_backup_{timestamp}.bak")
+        command = f"sqlcmd -S {DB_CONFIG['server']} -U {DB_CONFIG['user']} -P {DB_CONFIG['password']} -Q \"BACKUP DATABASE [{db_name}] TO DISK='{filename}'\""
         
         os.system(command)
         logging.info(f"Full backup successful: {filename}")
@@ -35,7 +30,7 @@ def backup_full(table_name=None):
         write_error_report(error_message, ERROR_REPORT_FILE)
         print(error_message)
 
-def backup_diff(table_name=None):
+def backup_diff():
     try:
         setup_logging(LOG_FILE)
         db_name = DB_CONFIG['database']
@@ -46,7 +41,7 @@ def backup_diff(table_name=None):
             return
         
         # Backup differential
-        timestamp = time.strftime('%Y%m%d%H%M%S')
+        timestamp = time.strftime('%d%m%Y%H%M%S')
         filename = os.path.join(BACKUP_DIR, f"{db_name}_diff_backup_{timestamp}.bak")
         command = f"sqlcmd -S {DB_CONFIG['server']} -U {DB_CONFIG['user']} -P {DB_CONFIG['password']} -Q \"BACKUP DATABASE [{db_name}] TO DISK='{filename}' WITH DIFFERENTIAL\""
         
@@ -69,9 +64,8 @@ def backup_translog():
         )
         cursor = conn.cursor()
         
-        backup_time = int(time.time())
-        
-        translog_filename = os.path.join(BACKUP_DIR, f"translog_{backup_time}.trn")
+        timestamp = time.strftime('%d%m%Y%H%M%S')
+        translog_filename = os.path.join(BACKUP_DIR, f"translog_{timestamp}.trn")
         command = f"sqlcmd -S {DB_CONFIG['server']} -U {DB_CONFIG['user']} -P {DB_CONFIG['password']} -Q \"BACKUP LOG [{DB_CONFIG['database']}] TO DISK='{translog_filename}'\""
         os.system(command)
         
